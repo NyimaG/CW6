@@ -62,6 +62,14 @@ class _TaskListScreenState extends State<TaskListScreen> {
         snapshot.docs.map((doc) => Task.fromFirestore(doc)).toList());
   }
 
+  //Checkbox method for tasks
+  Future<void> _updateTaskStatus(String taskId, bool isCompleted) async {
+    await FirebaseFirestore.instance.collection('Tasks').doc(taskId).update({
+      'isCompleted': isCompleted,
+    });
+  }
+
+//Delete method for tasks
   Future<void> _deletetask(String taskId) async {
     await FirebaseFirestore.instance.collection('Tasks').doc(taskId).delete();
   }
@@ -158,6 +166,16 @@ class _TaskListScreenState extends State<TaskListScreen> {
                           icon: const Icon(Icons.delete),
                           onPressed: () => _deletetask(task.taskId),
                         ),
+                        Checkbox(
+                          value: task.isCompleted,
+                          onChanged: (bool? newValue) {
+                            if (newValue != null) {
+                              _updateTaskStatus(task.taskId, newValue);
+                            }
+                          },
+                          activeColor: Colors.green,
+                          checkColor: Colors.white,
+                        )
                       ],
                     ),
                   ),
