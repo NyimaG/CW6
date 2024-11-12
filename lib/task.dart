@@ -62,6 +62,10 @@ class _TaskListScreenState extends State<TaskListScreen> {
         snapshot.docs.map((doc) => Task.fromFirestore(doc)).toList());
   }
 
+  Future<void> _deletetask(String taskId) async {
+    await FirebaseFirestore.instance.collection('Tasks').doc(taskId).delete();
+  }
+
   Future<void> _showAddTaskDialog() async {
     TextEditingController taskNameController = TextEditingController();
 
@@ -146,6 +150,17 @@ class _TaskListScreenState extends State<TaskListScreen> {
                       'isCompleted': !task.isCompleted,
                     });
                   },*/
+                  trailing: SizedBox(
+                    width: 150,
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () => _deletetask(task.taskId),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
             );
