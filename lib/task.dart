@@ -25,3 +25,140 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+class Task {
+  String name = " ";
+  bool isCompleted = false;
+  String taskId;
+
+  Task({required this.name, required this.isCompleted, required this.taskId});
+
+// Factory method to create a Task from Firestore document data
+  factory Task.fromFirestore(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    return Task(
+      name: data['Name'] ?? '',
+      isCompleted: data['isCompleted'] ?? false,
+      taskId: doc.id, // Use the document ID as taskId
+    );
+  }
+}
+
+class TaskListScreen extends StatefulWidget {
+  @override
+  _TaskListScreenState createState() => _TaskListScreenState();
+}
+
+class _TaskListScreenState extends State<TaskListScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late Stream<List<Task>> _tasksStream;
+  //final TextEditingController _nameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Set up a stream to listen for task data from Firestore
+    _tasksStream = _firestore.collection('Tasks').snapshots().map((snapshot) =>
+        snapshot.docs.map((doc) => Task.fromFirestore(doc)).toList());
+  }
+
+  Future<void> _showAddTaskDialog() async {
+    TextEditingController taskNameController = TextEditingController();
+
+    // Show dialog to enter the task name
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Add New Task'),
+          content: TextField(
+            controller: taskNameController,
+            decoration: InputDecoration(hintText: 'Enter task name'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Call addTask with the text from the input field
+                addTask(taskNameController.text);
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> addTask(String taskName) async {
+    if (taskName.isNotEmpty) {
+      await _firestore.collection('Tasks').add({
+        'Name': taskName,
+        'isCompleted': false,
+      });
+      // _nameController.clear(); // Clear the input after adding the task
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('Task List'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.logout),
+              onPressed: () => Navigator.pop(context),
+              tooltip: 'Logout',
+            ),
+          ],
+        ),
+        body: StreamBuilder<List<Task>>(
+          stream: _tasksStream,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(child: Text('No tasks found.'));
+            }
+
+            final tasks = snapshot.data!;
+            return ListView.builder(
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                final task = tasks[index];
+                return ListTile(
+                  title: Text(task.name),
+                  subtitle:
+                      Text(task.isCompleted ? 'Completed' : 'Not Completed'),
+                  /*onTap: () {
+                    // Toggle completion status in Firestore
+                    _firestore.collection('Tasks').doc(task.taskId).update({
+                      'isCompleted': !task.isCompleted,
+                    });
+                  },*/
+                );
+              },
+            );
+          },
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            //print("Button pressed");
+            _showAddTaskDialog();
+          },
+          child: const Icon(Icons.add),
+        ),
+      ),
+    );
+  }
+}
