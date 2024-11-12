@@ -74,6 +74,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
     await FirebaseFirestore.instance.collection('Tasks').doc(taskId).delete();
   }
 
+//Form for adding a new task
   Future<void> _showAddTaskDialog() async {
     TextEditingController taskNameController = TextEditingController();
 
@@ -108,11 +109,58 @@ class _TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
+  //add task method
   Future<void> addTask(String taskName) async {
     if (taskName.isNotEmpty) {
       await _firestore.collection('Tasks').add({
         'Name': taskName,
         'isCompleted': false,
+      });
+      // _nameController.clear(); // Clear the input after adding the task
+    }
+  }
+
+//form to update/edit task
+  Future<void> _showUpdateTaskDialog(String taskId) async {
+    TextEditingController taskNameController = TextEditingController();
+
+    // Show dialog to enter the task name
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Add New Task'),
+          content: TextField(
+            controller: taskNameController,
+            decoration: InputDecoration(hintText: 'Enter task name'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Call addTask with the text from the input field
+                _changeTask(taskNameController.text, taskId);
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Update'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+// method to update/edit task
+  Future<void> _changeTask(String taskName, taskId) async {
+    if (taskName.isNotEmpty) {
+      await FirebaseFirestore.instance.collection('Tasks').doc(taskId).update({
+        'Name': taskName,
+        //'isCompleted': false,
       });
       // _nameController.clear(); // Clear the input after adding the task
     }
@@ -162,6 +210,10 @@ class _TaskListScreenState extends State<TaskListScreen> {
                     width: 150,
                     child: Row(
                       children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _showUpdateTaskDialog(task.taskId),
+                        ),
                         IconButton(
                           icon: const Icon(Icons.delete),
                           onPressed: () => _deletetask(task.taskId),
