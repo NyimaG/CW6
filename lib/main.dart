@@ -228,14 +228,26 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
                 //print('button works');
                 if (_formKey.currentState!.validate()) {
                   _signInWithEmailAndPassword();
-                  _initialState
-                      // 'Please sign in'
-                      ? _success
-                      //'Successfully signed in $_userEmail'
-                      : Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => TaskListScreen()));
+                  // Ensure this function is awaited if it's async
+
+                  if (_success) {
+                    // If sign-in is successful, show success message and navigate to the next screen
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text('Successfully signed in $_userEmail')),
+                    );
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => TaskListScreen()),
+                    );
+                  } else {
+                    // If sign-in failed, show an error message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text('Sign-in failed. Please try again.')),
+                    );
+                  }
                 }
               },
               child: Text('Submit'),
@@ -245,12 +257,12 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              //_initialState
-              'Please sign in',
-              // : _success
-              //? 'Successfully signed in $_userEmail'
-              // : 'Sign in failed',
-              //style: TextStyle(color: _success ? Colors.green : Colors.red),
+              _initialState
+                  ? 'Please sign in'
+                  : _success
+                      ? 'Successfully signed in $_userEmail'
+                      : 'Sign in failed',
+              style: TextStyle(color: _success ? Colors.green : Colors.red),
             ),
           ),
         ],

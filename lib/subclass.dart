@@ -15,22 +15,24 @@ class Subtask {
       required this.isCompleted});
 
 //mapping to subtask fields from the database; each subtask is an array of maps (map = subtasks) for each main task
+
   factory Subtask.fromMap(Map<String, dynamic> data) {
     return Subtask(
       name: data['name'] ?? '',
       day: data['day'] ?? '',
-      start: data['starttime'] ?? '',
-      finish: data['finishtime'] ?? '',
+      start: data['start'] ?? '',
+      finish: data['finish'] ?? '',
       isCompleted: data['isCompleted'] ?? false,
     );
   }
+
 //mapping variables for input to subtask fields in database
   Map<String, dynamic> toMap() {
     return {
       'name': name,
       'day': day,
-      'startTime': start,
-      'finishTime': finish,
+      'start': start,
+      'finish': finish,
       'isCompleted': isCompleted,
     };
   }

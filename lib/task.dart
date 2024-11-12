@@ -39,21 +39,18 @@ class Task {
       required this.taskId,
       this.subtasks = const []});
 
-/*factory Task.fromFirestore(DocumentSnapshot doc) {
+// Factory method to create a Task from Firestore document data
+  factory Task.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     var subtaskList = (data['Subtasks'] as List<dynamic>? ?? [])
         .map((subtask) => Subtask.fromMap(subtask))
         .toList();
-}*/
 
-// Factory method to create a Task from Firestore document data
-  factory Task.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return Task(
       name: data['name'] ?? '',
       isCompleted: data['isCompleted'] ?? false,
       taskId: doc.id,
-      subtasks: data['Subtasks'], // Use the document ID as taskId
+      subtasks: subtaskList, // Use the document ID as taskId
     );
   }
 }
@@ -89,7 +86,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   }
 
   // form for subtask fields
-  Future<void> _showsubTaskDialog(String taskId) async {
+  Future<void> _showAddSubTaskDialog(String taskId) async {
     TextEditingController subTaskNameController = TextEditingController();
     TextEditingController startTimeController = TextEditingController();
     TextEditingController finishTimeController = TextEditingController();
@@ -249,6 +246,147 @@ class _TaskListScreenState extends State<TaskListScreen> {
     }
   }
 
+  /* Future<void> _showAddTaskDialog() async {
+    TextEditingController taskNameController = TextEditingController();
+    List<Map<String, dynamic>> subtasks = [];
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        TextEditingController subtaskNameController = TextEditingController();
+        TextEditingController subtaskDayController = TextEditingController();
+        TextEditingController subtaskStartTimeController =
+            TextEditingController();
+        TextEditingController subtaskFinishTimeController =
+            TextEditingController();
+
+        bool showSubtaskFields = false;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Add New Task'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: taskNameController,
+                      decoration: InputDecoration(hintText: 'Enter task name'),
+                    ),
+                    SizedBox(height: 16),
+
+                    // Button to add subtask fields
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          showSubtaskFields = !showSubtaskFields;
+                        });
+                      },
+                      child: Text(showSubtaskFields
+                          ? 'Hide Subtask Fields'
+                          : 'Add Subtask'),
+                    ),
+
+                    if (showSubtaskFields)
+                      Column(
+                        children: [
+                          TextField(
+                            controller: subtaskNameController,
+                            decoration:
+                                InputDecoration(hintText: 'Subtask name'),
+                          ),
+                          TextField(
+                            controller: subtaskDayController,
+                            decoration:
+                                InputDecoration(hintText: 'Day of the week'),
+                          ),
+                          TextField(
+                            controller: subtaskStartTimeController,
+                            decoration: InputDecoration(hintText: 'Start time'),
+                          ),
+                          TextField(
+                            controller: subtaskFinishTimeController,
+                            decoration:
+                                InputDecoration(hintText: 'Finish time'),
+                          ),
+                          SizedBox(height: 8),
+
+                          ElevatedButton(
+                            onPressed: () {
+                              // Add the subtask to the list
+                              setState(() {
+                                subtasks.add({
+                                  'name': subtaskNameController.text,
+                                  'day': subtaskDayController.text,
+                                  'start': subtaskStartTimeController.text,
+                                  'finish': subtaskFinishTimeController.text,
+                                  'isCompleted': false,
+                                });
+                              });
+
+                              // Clear subtask fields
+                              subtaskNameController.clear();
+                              subtaskDayController.clear();
+                              subtaskStartTimeController.clear();
+                              subtaskFinishTimeController.clear();
+                            },
+                            child: Text('Add Subtask'),
+                          ),
+
+                          SizedBox(height: 8),
+
+                          // Display the list of subtasks
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: subtasks.map((subtask) {
+                              return ListTile(
+                                title: Text(subtask['name']),
+                                subtitle: Text(
+                                    '${subtask['day']} | ${subtask['start']} - ${subtask['finish']}'),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Call addTask with the text from the input field and subtasks list
+                    addTask(taskNameController.text, subtasks);
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: Text('Add Task'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+// Modified addTask function to include subtasks
+  Future<void> addTask(
+      String taskName, List<Map<String, dynamic>> subtasks) async {
+    if (taskName.isNotEmpty) {
+      await FirebaseFirestore.instance.collection('tasks').add({
+        'name': taskName,
+        'isCompleted': false,
+        'Subtasks': subtasks, // Add subtasks to Firestore
+      });
+    }
+  }
+*/
 //form to update/edit task
   Future<void> _showUpdateTaskDialog(String taskId) async {
     TextEditingController taskNameController = TextEditingController();
@@ -308,6 +446,15 @@ class _TaskListScreenState extends State<TaskListScreen> {
     });
   }
 
+  Future<void> _deleteSubTask(String taskId, Subtask subTask) async {
+    final taskRef = _firestore.collection('tasks').doc(taskId);
+
+    // Remove the specified subtask from the subtasks array in Firestore
+    await taskRef.update({
+      'Subtasks': FieldValue.arrayRemove([subTask.toMap()]),
+    });
+  }
+
 //widget to display subtasks
   Widget _buildSubtasks(Task task) {
     return Column(
@@ -316,9 +463,21 @@ class _TaskListScreenState extends State<TaskListScreen> {
           title: Text(subtask.name),
           subtitle:
               Text('${subtask.day}, ${subtask.start} - ${subtask.finish}'),
-          trailing: Checkbox(
-            value: subtask.isCompleted,
-            onChanged: (_) => _toggleSubtaskCompletion(task.taskId, subtask),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Checkbox(
+                value: subtask.isCompleted,
+                onChanged: (_) =>
+                    _toggleSubtaskCompletion(task.taskId, subtask),
+                activeColor: Colors.green,
+                checkColor: Colors.white,
+              ),
+              IconButton(
+                icon: Icon(Icons.delete, color: Colors.red),
+                onPressed: () => _deleteSubTask(task.taskId, subtask),
+              ),
+            ],
           ),
         );
       }).toList(),
@@ -361,12 +520,12 @@ class _TaskListScreenState extends State<TaskListScreen> {
                     subtitle:
                         Text(task.isCompleted ? 'Completed' : 'Not Completed'),
                     trailing: SizedBox(
-                      width: 150,
+                      width: 180,
                       child: Row(
                         children: [
                           IconButton(
                             icon: const Icon(Icons.add),
-                            onPressed: () => _showsubTaskDialog(task.taskId),
+                            onPressed: () => _showAddSubTaskDialog(task.taskId),
                           ),
                           IconButton(
                             icon: const Icon(Icons.edit),
@@ -416,7 +575,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
 
 
-//THIS IS MY ORGINAL CODE WITHOUT SUBLIST; IT WORKS 
+//THIS IS MY ORGINAL CODE WITHOUT SUBLIST; IT WORKS fl
 
 /*import 'package:flutter/material.dart';
 //import 'package:firebase_auth/firebase_auth.dart';
