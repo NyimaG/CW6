@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "565095371455",
+    "project_id": "coursewk6-f1f20",
+    "storage_bucket": "coursewk6-f1f20.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:565095371455:android:708d3a11e4e4a7d7d8ec0a",
+        "android_client_info": {
+          "package_name": "com.example.cw6"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDktbKHfzmpBOyRQQ3jmdHzVOEylqfeXvs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
