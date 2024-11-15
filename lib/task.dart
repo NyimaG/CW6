@@ -461,15 +461,26 @@ class _TaskListScreenState extends State<TaskListScreen> {
       children: task.subtasks.map((subtask) {
         return ListTile(
           title: Text(subtask.name),
-          subtitle:
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text('${subtask.day}, ${subtask.start} - ${subtask.finish}'),
+              Text(subtask.isCompleted ? 'Completed' : 'Not Completed')
+            ],
+          ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Checkbox(
                 value: subtask.isCompleted,
-                onChanged: (_) =>
+                onChanged: /*(_) =>
                     _toggleSubtaskCompletion(task.taskId, subtask),
+                    */
+                    (bool? newValue) {
+                  if (newValue != null) {
+                    _toggleSubtaskCompletion(task.taskId, subtask);
+                  }
+                },
                 activeColor: Colors.green,
                 checkColor: Colors.white,
               ),
@@ -488,8 +499,10 @@ class _TaskListScreenState extends State<TaskListScreen> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        backgroundColor: const Color.fromARGB(255, 47, 168, 168),
         appBar: AppBar(
           title: Text('Task List'),
+          centerTitle: true,
           actions: [
             IconButton(
               icon: Icon(Icons.logout),

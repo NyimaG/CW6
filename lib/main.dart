@@ -17,8 +17,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Firebase Auth Demo',
-      home: MyHomePage(title: 'Firebase Auth Demo'),
+      title: 'Login Here',
+      home: MyHomePage(title: 'Login'),
     );
   }
 }
@@ -228,29 +228,27 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
                 //print('button works');
                 if (_formKey.currentState!.validate()) {
                   _signInWithEmailAndPassword();
-                  // Ensure this function is awaited if it's async
-
                   if (_success) {
                     // If sign-in is successful, show success message and navigate to the next screen
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                           content: Text('Successfully signed in $_userEmail')),
                     );
-
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => TaskListScreen()),
                     );
-                  } else {
+                  } /*else if (!_success) {
                     // If sign-in failed, show an error message
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                           content: Text('Sign-in failed. Please try again.')),
                     );
                   }
+                  */
                 }
               },
-              child: Text('Submit'),
+              child: Text('Submit: Must click twice to fully login'),
             ),
           ),
           Container(
